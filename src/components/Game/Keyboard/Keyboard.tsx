@@ -1,9 +1,6 @@
 import { Delete } from "lucide-react";
 import { cn } from "../../../lib/utils";
-import { KeyInfo } from "../../../data";
-import { LetterBGColor } from "../../../helpers";
-
-type KeyVariantsColors = LetterBGColor | "static" | "blue" | "red";
+import { KeyInfo, KeyVariantsColors } from "../../../data";
 
 const keyVariants: Record<KeyVariantsColors, string> = {
   none: "bg-zinc-800 text-zinc-400",

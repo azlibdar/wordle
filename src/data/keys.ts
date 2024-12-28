@@ -1,6 +1,10 @@
+import { LetterBGColor } from "../helpers";
+
+export type KeyVariantsColors = LetterBGColor | "static" | "blue" | "red";
+
 export interface KeyInfo {
   text: string;
-  color: "none" | "static" | "blue" | "yellow" | "gray" | "green";
+  color: KeyVariantsColors;
 }
 
 export const keys: KeyInfo[] = [
