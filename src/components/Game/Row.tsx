@@ -1,3 +1,4 @@
+import { LetterBGColor, LetterRingColor } from "../../helpers";
 import { LetterGuess } from "../../hooks/useWordle";
 import { cn } from "../../lib/utils";
 
@@ -14,12 +15,18 @@ const CELL_BASE_STYLES = [
   "ring-1 ring-inset ring-zinc-700",
 ];
 
-const COLOR_VARIANTS = {
+const BG_COLOR_VARIANTS: Record<LetterBGColor, string> = {
   gray: "bg-zinc-700 ring-0",
   green: "bg-emerald-600 ring-0",
   yellow: "bg-amber-600 ring-0",
   none: "bg-transparent",
-} as const;
+};
+
+const RING_COLOR_VARIANTS: Record<LetterRingColor, string> = {
+  green: "ring-emerald-600 ring-2",
+  red: "ring-rose-500 ring-2",
+  none: "",
+};
 
 const Row: React.FC<RowProps> = ({ row, rowIndex, activeCell }) => {
   return (
@@ -29,11 +36,13 @@ const Row: React.FC<RowProps> = ({ row, rowIndex, activeCell }) => {
           key={`${rowIndex}-${cellIndex}`}
           className={cn(
             ...CELL_BASE_STYLES,
-            cell.color && COLOR_VARIANTS[cell.color],
-            activeCell[0] === rowIndex && activeCell[1] === cellIndex && "ring-2 ring-emerald-600",
+            cell.bg_color && BG_COLOR_VARIANTS[cell.bg_color],
+            cell.ring_color && RING_COLOR_VARIANTS[cell.ring_color],
+            activeCell[0] === rowIndex &&
+              activeCell[1] === cellIndex &&
+              "ring-2 ring-emerald-600",
             cell.input && "animate-cell"
-          )}
-        >
+          )}>
           {cell.input}
         </div>
       ))}

@@ -5757,3 +5757,5 @@ export const words = [
   "biffy",
   "pupal",
 ];
+
+export const wordsSet = new Set<string>(words);
