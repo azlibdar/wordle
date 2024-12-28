@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { handleFormatGuess } from "../helpers";
+import { handleFormatGuess, LetterBGColor, LetterRingColor } from "../helpers";
 import { HistoryState } from "../components/Game/GameOver/History";
-import { KeyInfo, keys } from "../data";
+import { KeyInfo, keys, wordsSet } from "../data";
 import { toast } from "react-toastify";
 
 export interface LetterGuess {
   input: string;
-  color: "gray" | "green" | "yellow" | "none";
+  bg_color: LetterBGColor;
+  ring_color: LetterRingColor;
 }
 
 export type RowGuess = LetterGuess[];
@@ -21,7 +22,13 @@ const TOTAL_GUESSES = 6;
 
 const useWordle = (word: string) => {
   const [board, setBoard] = useState<Array<RowGuess>>(
-    Array.from({ length: TOTAL_GUESSES }, () => Array.from({ length: 5 }, () => ({ input: "", color: "none" })))
+    Array.from({ length: TOTAL_GUESSES }, () =>
+      Array.from({ length: 5 }, () => ({
+        input: "",
+        bg_color: "none",
+        ring_color: "none",
+      }))
+    )
   );
   const [currentGuess, setCurrentGuess] = useState("");
   const [guessHistory, setGuessHistory] = useState<string[]>([]);
@@ -35,6 +42,28 @@ const useWordle = (word: string) => {
     guessesUsed: 0,
   });
 
+  const isInvalidGuess =
+    currentGuess.length === 5 && !wordsSet.has(currentGuess);
+
+  useEffect(() => {
+    if (isInvalidGuess) {
+      setBoard((prevBoard) => {
+        const newBoard = [...prevBoard];
+        newBoard[currentTurn].forEach((cell) => (cell.ring_color = "red"));
+        return newBoard;
+      });
+      toast(
+        `${currentGuess.toUpperCase()} is an invalid world. Please try again`
+      );
+    } else {
+      setBoard((prevBoard) => {
+        const newBoard = [...prevBoard];
+        newBoard[currentTurn].forEach((cell) => (cell.ring_color = "none"));
+        return newBoard;
+      });
+    }
+  }, [currentGuess, currentTurn, isInvalidGuess]);
+
   // Save to local storage
   useEffect(() => {
     const history = localStorage.getItem("history");
@@ -45,8 +74,12 @@ const useWordle = (word: string) => {
       const updatedHistory = {
         ...parsedHistory,
         totalGamesPlayed: parsedHistory.totalGamesPlayed + 1,
-        totalGamesWon: gameStatus.isWinner ? parsedHistory.totalGamesWon + 1 : parsedHistory.totalGamesWon,
-        totalGamesLost: !gameStatus.isWinner ? parsedHistory.totalGamesLost + 1 : parsedHistory.totalGamesLost,
+        totalGamesWon: gameStatus.isWinner
+          ? parsedHistory.totalGamesWon + 1
+          : parsedHistory.totalGamesWon,
+        totalGamesLost: !gameStatus.isWinner
+          ? parsedHistory.totalGamesLost + 1
+          : parsedHistory.totalGamesLost,
       };
 
       localStorage.setItem("history", JSON.stringify(updatedHistory));
@@ -76,7 +109,11 @@ const useWordle = (word: string) => {
     }
 
     if (currentGuess !== word && currentTurn === TOTAL_GUESSES - 1) {
-      setGameStatus({ isOver: true, isWinner: false, guessesUsed: currentTurn });
+      setGameStatus({
+        isOver: true,
+        isWinner: false,
+        guessesUsed: currentTurn,
+      });
       setIsGameOver(true);
     }
 
@@ -98,7 +135,10 @@ const useWordle = (word: string) => {
         toast("You already guessed that word");
         return;
       }
-      // TODO: Check if the word is valid
+      if (isInvalidGuess) {
+        toast(`${currentGuess.toUpperCase()} is an invalid world`);
+        return;
+      }
 
       const formattedGuess = handleFormatGuess(word, currentGuess);
 
@@ -133,6 +173,11 @@ const useWordle = (word: string) => {
       setBoard((prevBoard) => {
         const newBoard = [...prevBoard];
         newBoard[currentTurn][currentGuess.length - 1].input = "";
+
+        if (newBoard[currentTurn].some((cell) => cell.ring_color === "red")) {
+          newBoard[currentTurn].forEach((cell) => (cell.ring_color = "none"));
+        }
+
         return newBoard;
       });
       setActiveCell([currentTurn, currentGuess.length - 1]);
@@ -151,7 +196,15 @@ const useWordle = (word: string) => {
     }
   };
 
-  return { board, handleKeyup, keysData, gameStatus, activeCell };
+  return {
+    board,
+    handleKeyup,
+    keysData,
+    gameStatus,
+    activeCell,
+    isInvalidGuess,
+    currentGuess,
+  };
 };
 
 export default useWordle;
